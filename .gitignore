@@ -1,26 +1,3 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Testing
-coverage/
-
-# Production Build Output
-build/
-
-# Misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# ---------------------------------
-# SECURITY: IGNORE API KEYS
-# ---------------------------------
-.env
-
 # Logs
 logs
 *.log
@@ -30,10 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor directories
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj

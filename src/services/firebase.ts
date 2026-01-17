@@ -1,10 +1,10 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // REPLACE WITH YOUR FIREBASE CONFIGURATION
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyBZTM_1UhO6JRQSrJDfHQYyEPtpNDdZmcE",
   authDomain: "study-app-29c11.firebaseapp.com",
   projectId: "study-app-29c11",
   storageBucket: "study-app-29c11.firebasestorage.app",
@@ -13,6 +13,6 @@ const firebaseConfig = {
   measurementId: "G-3QQYE0XZS2"
 };
 
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);

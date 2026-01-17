@@ -1,184 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FocusSession, FocusSettings } from '../types';
+import React from 'react';
+import { FocusSession } from '../types';
 import { PlayIcon, PauseIcon, StopIcon, SettingsIcon, ClockIcon, AlertIcon } from './Icons';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface FocusModeProps {
   sessions: FocusSession[];
-  setSessions: React.Dispatch<React.SetStateAction<FocusSession[]>>;
+  timer: any; // Using the object returned by useFocusTimer
 }
 
-const FocusMode: React.FC<FocusModeProps> = ({ sessions, setSessions }) => {
-  // Settings State
-  const [settings, setSettings] = useState<FocusSettings>(() => {
-    const saved = localStorage.getItem('roncate_focus_settings');
-    return saved ? JSON.parse(saved) : {
-      timerDuration: 25, // default 25 min
-      mode: 'countdown',
-      punishments: {
-        audio: true,
-        penaltyTime: true,
-        blurScreen: true,
-        popupWarning: true
-      },
-      autoPause: true
-    };
-  });
-
-  // Timer State
-  const [isActive, setIsActive] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(settings.timerDuration * 60);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [distractions, setDistractions] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
-  
-  // Punishment States
-  const [isBlurred, setIsBlurred] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-
-  // --- Effects ---
-
-  // Save Settings
-  useEffect(() => {
-    localStorage.setItem('roncate_focus_settings', JSON.stringify(settings));
-  }, [settings]);
-
-  // Handle Distraction (Visibility Change)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!isActive || isPaused) return;
-
-      if (document.hidden) {
-        // User left the tab
-        if (settings.autoPause) {
-          setIsPaused(true);
-        }
-        handleDistraction();
-      }
-    };
-
-    const handleWindowBlur = () => {
-      if (!isActive || isPaused) return;
-      // Triggers when user clicks outside window or minimizes
-      if (settings.autoPause) {
-          setIsPaused(true);
-      }
-      handleDistraction();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-    };
-  }, [isActive, isPaused, settings]);
-
-  // Timer Interval
-  useEffect(() => {
-    if (isActive && !isPaused) {
-      timerRef.current = setInterval(() => {
-        if (settings.mode === 'countdown') {
-          setTimeLeft((prev) => {
-            if (prev <= 1) {
-              handleStop(true); // Complete
-              return 0;
-            }
-            return prev - 1;
-          });
-        }
-        setElapsedTime((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isActive, isPaused, settings.mode]);
-
-  // --- Logic ---
-
-  const handleDistraction = () => {
-    setDistractions(prev => prev + 1);
-    
-    // Punishment: Counter (Already handled by setDistractions)
-
-    // Punishment: Audio
-    if (settings.punishments.audio) {
-      // Try playing the custom file first
-      const audio = new Audio('/audio/motivation.mp3');
-      audio.play().catch((err) => {
-        console.warn("Custom audio not found or autoplay blocked, using TTS fallback.", err);
-        // Fallback to TTS
-        const utterance = new SpeechSynthesisUtterance("Padh le! Exam hai teri! Don't get distracted.");
-        utterance.rate = 1.2;
-        window.speechSynthesis.speak(utterance);
-      });
-    }
-
-    // Punishment: Penalty Time (+1 minute)
-    if (settings.punishments.penaltyTime && settings.mode === 'countdown') {
-       setTimeLeft(prev => prev + 60);
-    }
-
-    // Punishment: Blur Screen
-    if (settings.punishments.blurScreen) {
-      setIsBlurred(true);
-      setTimeout(() => setIsBlurred(false), 3000); // Remove blur after 3 seconds
-    }
-
-    // Punishment: Popup
-    if (settings.punishments.popupWarning) {
-      setShowWarning(true);
-      setTimeout(() => setShowWarning(false), 3000);
-    }
-  };
-
-  const handleStart = () => {
-    if (!isActive) {
-      // First start
-      setTimeLeft(settings.timerDuration * 60);
-      setElapsedTime(0);
-      setDistractions(0);
-      startTimeRef.current = Date.now();
-    }
-    setIsActive(true);
-    setIsPaused(false);
-  };
-
-  const handlePause = () => {
-    setIsPaused(true);
-  };
-
-  const handleStop = (completed: boolean = false) => {
-    setIsActive(false);
-    setIsPaused(false);
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    if (elapsedTime > 60) { // Only save if session > 1 minute
-      const session: FocusSession = {
-        id: crypto.randomUUID(),
-        startTime: startTimeRef.current || Date.now(),
-        endTime: Date.now(),
-        durationMinutes: Math.floor(elapsedTime / 60),
-        distractionCount: distractions,
-        focusScore: Math.max(0, 100 - (distractions * 5))
-      };
-      setSessions([session, ...sessions]);
-    }
-
-    if (!completed) {
-      // Reset timer visual immediately if manually stopped
-      setTimeLeft(settings.timerDuration * 60);
-      setElapsedTime(0);
-    }
-  };
+const FocusMode: React.FC<FocusModeProps> = ({ sessions, timer }) => {
+  const [showSettings, setShowSettings] = React.useState(false);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -186,18 +17,18 @@ const FocusMode: React.FC<FocusModeProps> = ({ sessions, setSessions }) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // --- Render ---
+  const {
+      settings, setSettings,
+      isActive, isPaused,
+      timeLeft, elapsedTime,
+      distractions,
+      handleStart, handlePause, handleStop
+  } = timer;
+
+  const displayTime = settings.mode === 'countdown' ? timeLeft : elapsedTime;
 
   return (
-    <div className={`relative transition-all duration-300 ${isBlurred ? 'blur-md' : ''}`}>
-       {/* Popup Warning */}
-       {showWarning && (
-          <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 font-bold">
-             <AlertIcon className="w-6 h-6" />
-             DON'T GET DISTRACTED!
-          </div>
-       )}
-
+    <div className="relative transition-all duration-300">
        <div className="grid lg:grid-cols-3 gap-6 h-[calc(100vh-100px)]">
           {/* Main Timer Area */}
           <div className="lg:col-span-2 flex flex-col gap-6">
@@ -220,7 +51,7 @@ const FocusMode: React.FC<FocusModeProps> = ({ sessions, setSessions }) => {
                      {settings.mode === 'countdown' ? 'Focus Timer' : 'Stopwatch'}
                    </h2>
                    <div className="text-9xl font-bold tabular-nums text-slate-800 dark:text-white mb-12 tracking-tight">
-                     {settings.mode === 'countdown' ? formatTime(timeLeft) : formatTime(elapsedTime)}
+                     {formatTime(displayTime)}
                    </div>
                    
                    <div className="flex gap-6 justify-center">
@@ -319,6 +150,15 @@ const FocusMode: React.FC<FocusModeProps> = ({ sessions, setSessions }) => {
                              className="rounded text-indigo-600"
                            />
                            Popup Warning
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-200">
+                           <input 
+                             type="checkbox" 
+                             checked={settings.autoPause}
+                             onChange={(e) => setSettings({...settings, autoPause: e.target.checked})}
+                             className="rounded text-indigo-600"
+                           />
+                           Auto-pause on tab switch
                         </label>
                      </div>
                   </div>

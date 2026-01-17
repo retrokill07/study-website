@@ -8,9 +8,15 @@ interface LayoutProps {
   children: React.ReactNode;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  focusActive?: boolean;
+  focusPaused?: boolean;
+  focusTime?: number;
 }
 
-const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, isDarkMode, toggleDarkMode }) => {
+const Layout: React.FC<LayoutProps> = ({ 
+    currentView, setView, children, isDarkMode, toggleDarkMode,
+    focusActive, focusPaused, focusTime 
+}) => {
   const NavItem = ({ view, label, icon }: { view: ViewState, label: string, icon: React.ReactNode }) => (
     <button
       onClick={() => setView(view)}
@@ -25,6 +31,13 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, isDarkM
     </button>
   );
 
+  const formatTime = (seconds?: number) => {
+      if (typeof seconds !== 'number') return '--:--';
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Sidebar */}
@@ -37,7 +50,16 @@ const Layout: React.FC<LayoutProps> = ({ currentView, setView, children, isDarkM
         <nav className="p-4 flex-grow overflow-y-auto">
           <NavItem view="dashboard" label="Dashboard" icon={<DashboardIcon className="w-5 h-5"/>} />
           <div className="my-4 border-t border-slate-100 dark:border-slate-800"></div>
-          <NavItem view="focus" label="Focus Mode" icon={<ClockIcon className="w-5 h-5"/>} />
+          
+          <div className="relative">
+              <NavItem view="focus" label="Focus Mode" icon={<ClockIcon className="w-5 h-5"/>} />
+              {focusActive && (
+                  <div className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-xs font-bold px-2 py-1 rounded-full ${focusPaused ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700 animate-pulse'}`}>
+                      {formatTime(focusTime)}
+                  </div>
+              )}
+          </div>
+
           <NavItem view="syllabus" label="Syllabus" icon={<ListIcon className="w-5 h-5"/>} />
           <NavItem view="notes" label="My Notes" icon={<NoteIcon className="w-5 h-5"/>} />
           <NavItem view="exams" label="Exam Planner" icon={<CalendarIcon className="w-5 h-5"/>} />

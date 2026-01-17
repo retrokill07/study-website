@@ -1,62 +1,89 @@
+
 # Roncate - Adaptive Educational Platform 🎓
 
-Roncate is an advanced, AI-powered educational web application designed to optimize student performance through adaptive learning strategies. Unlike traditional note-taking apps, Roncate actively tracks syllabus completion, monitors study focus, and uses **Artificial Intelligence (Llama 3.1)** to generate personalized daily study plans.
+Roncate is an AI-powered study companion that helps students manage their syllabus, plan exams, and maintain focus. It uses **Meta Llama 3.1** to generate study strategies and **Firebase Firestore** to save your progress permanently.
 
-![Roncate Banner](https://via.placeholder.com/1200x400.png?text=Roncate+Adaptive+Learning+Platform)
+## 🌟 Features
 
-## 🚀 Key Features
-
-### 1. 🧠 AI-Powered Study Coach
-- **Model**: Powered by **Meta Llama 3.1** (via OpenRouter).
-- **Adaptive Strategy**: Analyzes your incomplete syllabus topics and upcoming exam dates to generate a text-based strategy for the day.
-- **Priority List**: Suggests specific topics to focus on immediately based on difficulty and urgency.
-
-### 2. 🎯 Focus Mode & Distraction Fighter
-A comprehensive system to ensure deep work sessions.
-- **Custom Timer**: Set study duration (Countdown or Stopwatch).
-- **Distraction Detection**: Automatically detects when you switch tabs, minimize the window, or lose focus.
-- **Punishment System**:
-  - **Audio Alert**: Plays a custom sound (`motivation.mp3`) or a TTS voice command ("Padh le! Exam hai teri!") when distracted.
-  - **Time Penalty**: Adds +1 minute to your timer for every distraction.
-  - **Blur Screen**: Temporarily blurs the interface to force a mental reset.
-  - **Shame Counter**: Tracks and displays the total number of distractions in real-time.
-- **Analytics**: visualizes study time vs. focus score.
-
-### 3. 📋 Intelligent Syllabus Tracker
-- **AI Parser**: Paste raw text from a PDF or course guide, and the AI will automatically extract topics and assign difficulty levels (Easy/Medium/Hard).
-- **Manual Tracking**: Check off topics as you learn them to update your global progress.
-
-### 4. 📝 Smart Notes Manager
-- **Subject-wise Organization**: Keep notes separated by subject.
-- **Rich Media**: Upload and attach images directly to your notes (stored as Base64 for portability).
-- **Auto-Save**: Notes are saved locally or to the state instantly.
-
-### 5. 📅 Exam Planner
-- **Timeline Visualization**: See upcoming exams sorted by date.
-- **Countdown**: Visual indicators for exams happening in the next 3 days.
-
-### 6. 🔐 Role-Based Authentication
-- **Firebase Auth**: Secure email/password login.
-- **Student Profiles**:
-  - **School Mode**: Tracks Class/Grade level.
-  - **College Mode**: Tracks University, Branch/Major, and Year.
-
-### 7. 🌗 UI/UX
-- **Dark Mode**: Fully supported system-wide dark theme.
-- **Responsive**: Works seamlessly on Desktop and Mobile.
+1.  **AI Coach (Llama 3.1)**: Generates personalized study plans based on your incomplete syllabus and exam dates.
+2.  **Global Focus Mode**: A persistent timer that tracks your study sessions even while you navigate the app. Includes distraction detection (tab switching) and punishments (audio alerts).
+3.  **Cloud Sync**: All your notes, subjects, exams, and focus stats are saved to the cloud using Firebase.
+4.  **Syllabus Tracker**: Paste raw course text, and the AI will auto-extract topics.
+5.  **Exam Planner**: Visual timeline of upcoming tests.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Setup Instructions
 
-- **Frontend**: React 19, TypeScript, Tailwind CSS
-- **State Management**: React Hooks & Context
-- **Database & Auth**: Firebase (Firestore & Authentication)
-- **Artificial Intelligence**: OpenRouter API (`meta-llama/llama-3.1-8b-instruct`)
-- **Visualization**: Recharts (Data visualization for dashboard and focus stats)
+### 1. Prerequisites
+- **Node.js**: Installed on your computer.
+
+### 2. Installation
+Open your terminal in the project folder:
+```bash
+npm install
+```
+
+### 3. Environment Variables (Critical for AI)
+1.  Create a file named `.env` in the root folder.
+2.  Get a key from [OpenRouter.ai](https://openrouter.ai/).
+3.  Add it to the file:
+    ```env
+    REACT_APP_API_KEY=sk-or-v1-your-actual-key-here
+    ```
 
 ---
 
-## 📄 License
+## 🔥 Firebase Setup (Required for Database)
 
-This project is licensed under the MIT License.
+To make the Login and Save features work, you need to configure Firebase properly.
+
+### Step 1: Create Project
+1.  Go to [Firebase Console](https://console.firebase.google.com/).
+2.  Click **Add Project** and name it "Roncate".
+
+### Step 2: Enable Authentication
+1.  Go to **Build** -> **Authentication**.
+2.  Click **Get Started**.
+3.  Select **Email/Password** provider and enable it.
+
+### Step 3: Enable Firestore Database (NEW REQUIREMENT)
+Since we added data saving features, you must enable the database:
+1.  Go to **Build** -> **Firestore Database**.
+2.  Click **Create Database**.
+3.  Choose a location (e.g., nam5 or anything close to you).
+4.  **Important**: When asked for security rules, choose **Start in Test Mode**.
+    *   *Why?* This allows your app to read/write data immediately without complex setup.
+    *   *Note:* In a real production app, you would lock this down later.
+
+### Step 4: Get Config
+1.  Go to **Project Settings** (Gear icon).
+2.  Scroll down to **Your apps**.
+3.  Select the **</>** (Web) icon.
+4.  Copy the `firebaseConfig` object.
+5.  Paste it into your code at `src/services/firebase.ts`.
+
+---
+
+## 🚀 Running the App
+
+```bash
+npm start
+```
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+## 🎵 Custom Audio
+To customize the distraction punishment sound:
+1.  Place your mp3 file in `public/audio/`.
+2.  Rename it to `motivation.mp3`.
+
+---
+
+## 📂 Project Structure
+
+- **src/components**: UI Elements (Dashboard, Focus Timer, etc.)
+- **src/services**:
+  - `aiService.ts`: Handles OpenRouter (Llama 3.1) calls.
+  - `dataService.ts`: Handles saving/loading data from Firebase Firestore.
+  - `firebase.ts`: Database configuration.
+- **src/hooks**: Custom logic (like the global focus timer).
